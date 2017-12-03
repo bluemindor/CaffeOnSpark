@@ -121,7 +121,7 @@ void P2PSyncCPU<Dtype>::on_gradients_ready() {
   caffe_cpu_scale(size_, Dtype(1.0 / Caffe::solver_count()), diff_, diff_);
 }
 
-INSTANTIATE_CLASS(Params);
+//INSTANTIATE_CLASS(Params);
 INSTANTIATE_CLASS(CPUParams);
 INSTANTIATE_CLASS(P2PSyncCPU);
 

@@ -61,7 +61,10 @@ private[caffe] object FSUtils {
       val srcPath: java.nio.file.Path = Paths.get(localModelFilename)
       val desPath: java.nio.file.Path = Paths.get(desModelFilename)
       log.info(srcPath+"-->"+desPath)
-      Files.move(srcPath, desPath, StandardCopyOption.REPLACE_EXISTING)
+      //Files.move(srcPath, desPath, StandardCopyOption.REPLACE_EXISTING)
+      Files.copy(srcPath, desPath, StandardCopyOption.REPLACE_EXISTING)
+      Files.delete(srcPath)
+
     }
     else
       CopyFileToHDFS(localModelFilename, desModelFilename)

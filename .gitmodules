@@ -1,3 +1,4 @@
 [submodule "caffe-public"]
 	path = caffe-public
-	url = https://github.com/yahoo/caffe.git
+	url = git@github.com:bluemindor/caffe.git
+	branch = dli_trunk

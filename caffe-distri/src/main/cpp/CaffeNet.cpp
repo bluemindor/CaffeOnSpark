@@ -414,11 +414,10 @@ bool LocalCaffeNet<Dtype>::connect(vector<const char*>& addresses) {
 #ifndef CPU_ONLY
     //When syncs_.size() == 0, we will use root_solver_ only
     if (this->syncs_.size() > 0) {
-        this->syncs_[0].reset(new P2PSync<Dtype>(this->root_solver_,
-                                                            NULL, this->root_solver_->param()));
+        this->syncs_[0].reset(new NCCL<Dtype>(this->root_solver_));
         // Pair devices for map-reduce synchronization
-        this->syncs_[0]->Prepare(this->local_devices_,
-                                &this->syncs_);
+        //this->syncs_[0]->Prepare(this->local_devices_,
+        //                        &this->syncs_);
     }
 #else
     if (this->syncs_.size() > 0) {
@@ -445,8 +444,8 @@ bool RDMACaffeNet<Dtype>::connect(vector<const char*>& peer_addresses) {
                                               rdma_channels_,
                                               this->node_rank_));
     // Pair devices for map-reduce synchronization
-    this->syncs_[0]->Prepare(this->local_devices_,
-                            &this->syncs_);
+    //this->syncs_[0]->Prepare(this->local_devices_,
+    //                        &this->syncs_);
 
     return true;
 }
@@ -469,8 +468,8 @@ bool SocketCaffeNet<Dtype>::connect(vector<const char*>& peer_addresses) {
                                                 sockt_channels_,
                                                 this->node_rank_));
     // Pair devices for map-reduce synchronization
-    this->syncs_[0]->Prepare(this->local_devices_,
-                             &this->syncs_);
+    //this->syncs_[0]->Prepare(this->local_devices_,
+    //                         &this->syncs_);
 #else
     this->syncs_[0].reset(new SocketSyncCPU<Dtype>(this->root_solver_,
 						   sockt_channels_,
@@ -534,7 +533,7 @@ int CaffeNet<Dtype>::getInitIter(int solver_index) {
 	if (solver_index == 0)
 	    return root_solver_->iter();
 	else
-            return syncs_[solver_index]->initial_iter();
+        return syncs_[solver_index]->solver()->iter();
     }
 }
 
@@ -597,7 +596,7 @@ bool CaffeNet<Dtype>::init(int solver_index, bool enableNN) {
         solver = root_solver_;
     } else {
         CHECK(syncs_[solver_index]) << "solver was not initialized";
-        solver = syncs_[solver_index]->solver();
+        solver = root_solver_;
     }
     CHECK(solver) << "solver is NULL";
 
@@ -608,8 +607,8 @@ bool CaffeNet<Dtype>::init(int solver_index, bool enableNN) {
 
     if (enableNN) {
         CHECK(Caffe::root_solver());
-        if (solver_index != 0) // all the solvers are slaves except the first one.
-            Caffe::set_root_solver(false);
+        //if (solver_index != 0) // all the solvers are slaves except the first one.
+        //    Caffe::set_root_solver(false);
         // See if there is a defined seed and reset random state if so
         if (solver->param().random_seed() >= 0) {
             // Fetch random seed and modulate by device ID to make sure
@@ -720,7 +719,7 @@ bool CaffeNet<Dtype>::train(int solver_index, vector< Blob<Dtype>* >& input_data
         solver = root_solver_;
     } else {
         CHECK(syncs_[solver_index]) << "solver was not initialized properly";
-        solver = syncs_[solver_index]->solver();
+        solver = root_solver_;
     }
 
     solver->Step(1);

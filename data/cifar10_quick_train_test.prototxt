@@ -9,7 +9,7 @@ layer {
   }
   source_class: "com.yahoo.ml.caffe.LMDB" 
   memory_data_param {
-    source: "hdfs:///projects/machine_learning/image_dataset/cifar10_train_lmdb/"
+    source: "file:///root/ankun/fabric-1.0.0/data/cifar10/cifar10_train_lmdb/"
     batch_size: 100
     channels: 3
     height: 32
@@ -17,7 +17,7 @@ layer {
     share_in_parallel: false
   }
   transform_param {
-    mean_file: "mean.binaryproto"
+    mean_file: "/root/ankun/fabric-1.0.0/data/cifar10/mean.binaryproto"
   }
 }
 layer {
@@ -30,7 +30,7 @@ layer {
   }
   source_class: "com.yahoo.ml.caffe.LMDB"
   memory_data_param {
-    source: "hdfs:///projects/machine_learning/image_dataset/cifar10_test_lmdb/"
+    source: "file:///root/ankun/fabric-1.0.0/data/cifar10/cifar10_test_lmdb/"
     batch_size: 100
     channels: 3
     height: 32
@@ -38,7 +38,7 @@ layer {
     share_in_parallel: false
   }
   transform_param {
-    mean_file: "mean.binaryproto"
+    mean_file: "/root/ankun/fabric-1.0.0/data/cifar10/mean.binaryproto"
   }
 
 }

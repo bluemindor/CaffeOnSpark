@@ -23,5 +23,5 @@ max_iter: 10000
 snapshot: 5000
 snapshot_prefix: "target/caffenet"
 # solver mode: CPU or GPU
-solver_mode: CPU
+solver_mode: GPU
 snapshot_format: HDF5

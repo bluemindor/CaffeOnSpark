@@ -10,7 +10,7 @@ import caffe.Caffe.Datum
 import org.apache.hadoop.fs.Path
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, SparkContext, SparkFiles, TaskContext}
-import org.fusesource.lmdbjni.{Transaction, Database, Entry, Env}
+import org.fusesource.lmdbjni.{Transaction, Database, Entry, Env, Constants}
 import org.slf4j.{LoggerFactory, Logger}
 
 import scala.collection.mutable
@@ -198,10 +198,14 @@ class LmdbRDD(@transient val sc: SparkContext, val lmdb_path: String, val numPar
     LmdbRDD.loadLibrary()
 
     if (env == null)
-      env = new Env(localLMDBFile())
+      env = new Env()
+      env.open(localLMDBFile(), Constants.NOLOCK|Constants.RDONLY|Constants.NOTLS)
 
-    if (db == null)
-      db = env.openDatabase(null, 0)
+    if (db == null) {
+      val txn: Transaction = env.createReadTransaction()
+      db = env.openDatabase(txn, null, 0)
+      txn.commit()
+    }
   }
 
   /*

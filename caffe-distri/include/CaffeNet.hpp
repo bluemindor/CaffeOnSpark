@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "caffe/caffe.hpp"
+#include "caffe/parallel.hpp"
 #include "util/InputAdapter.hpp"
 #include "util/parallel_cpu.hpp"
 #include "util/rdma.hpp"
@@ -29,7 +30,7 @@ class CaffeNet {
     vector<int> local_devices_;
     shared_ptr<Solver<Dtype> > root_solver_;
 #ifndef CPU_ONLY
-    vector<shared_ptr<P2PSync<Dtype> > > syncs_;
+    vector<shared_ptr<NCCL<Dtype> > > syncs_;
 #else
     vector<shared_ptr<P2PSyncCPU<Dtype> > > syncs_;
 #endif

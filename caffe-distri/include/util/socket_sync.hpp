@@ -40,7 +40,7 @@ namespace caffe {
  * first phase of the next iteration.
  */
 template<typename Dtype>
-class SocketSync : public P2PSync<Dtype> {
+class SocketSync : public NCCL<Dtype> {
  public:
   SocketSync(shared_ptr<Solver<Dtype> > solver,
              const vector<shared_ptr<SocketChannel> >& peers, int rank);

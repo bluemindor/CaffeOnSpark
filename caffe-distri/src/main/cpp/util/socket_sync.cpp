@@ -14,7 +14,7 @@ template<typename Dtype>
 SocketSync<Dtype>::SocketSync(shared_ptr<Solver<Dtype> > root_solver,
                               const vector<shared_ptr<SocketChannel> > &
                               peers, int rank)
-  : P2PSync<Dtype>(root_solver, NULL, root_solver->param()),
+  : NCCL<Dtype>(root_solver),
     peers_(peers),
     rank_(rank),
     data_send_(peers.size()),
@@ -118,13 +118,13 @@ void SocketSync<Dtype>::on_start() {
   // Send weights to each node
   sync(true);
   // Send weights to local GPUs
-  P2PSync<Dtype>::on_start();
+  NCCL<Dtype>::on_start();
 }
 
 template<typename Dtype>
 void SocketSync<Dtype>::on_gradients_ready() {
   // Reduce gradients from local GPUs
-  P2PSync<Dtype>::on_gradients_ready();
+  NCCL<Dtype>::on_gradients_ready();
   // Send gradients to corresponding parameter server node
   int peer = rank_ + 1;
   for (int n = 0; n < peers_.size() - 1; ++n) {

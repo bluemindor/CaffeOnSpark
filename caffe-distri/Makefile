@@ -6,6 +6,7 @@ ifeq ($(wildcard $(CONFIG_FILE)),)
 $(error $(CONFIG_FILE) not found. See $(CONFIG_FILE).example.)
 endif
 include $(CONFIG_FILE)
+PROTOC ?= protoc
 
 BUILD_DIR_LINK := $(BUILD_DIR)
 ifeq ($(RELEASE_BUILD_DIR),)
@@ -44,7 +45,7 @@ TOOL_SRCS := $(shell find src -path "*/tools/*" -name "*.cpp")
 # BUILD_INCLUDE_DIR contains any generated header files we want to include.
 BUILD_INCLUDE_DIR := $(BUILD_DIR)/src
 # PROTO_SRC is the protocol buffer definition
-PROTO_SRC_DIR := ../caffe-public/distribute/proto
+PROTO_SRC_DIR := ../caffe-public/src/caffe/proto
 PROTO_SRC := $(PROTO_SRC_DIR)/caffe.proto
 # PROTO_BUILD_DIR will contain the .java files generated from PROTO_SRCS;
 PROTO_BUILD_DIR := src/main/java
@@ -108,8 +109,9 @@ CUDA_LIB_DIR += $(CUDA_DIR)/lib
 
 EXTRA_INCLUDE_DIRS := ../caffe-public/src
 INCLUDE_DIRS += ${JAVA_HOME}/include
-INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./include ../caffe-public/distribute/include $(EXTRA_INCLUDE_DIRS)
-LIBRARY_DIRS += ../caffe-public/distribute/lib
+INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./include ../caffe-public/include $(EXTRA_INCLUDE_DIRS)
+INCLUDE_DIRS += ../caffe-public/distribute/include
+LIBRARY_DIRS += ../caffe-public/.build_release/lib
 ifneq ($(CPU_ONLY), 1)
 	INCLUDE_DIRS += $(CUDA_INCLUDE_DIR)
 	LIBRARY_DIRS += $(CUDA_LIB_DIR)
@@ -189,6 +191,13 @@ ifeq ($(LINUX), 1)
 	LIBRARIES += boost_thread stdc++
 endif
 
+# NCCL acceleration configuration
+ifeq ($(USE_NCCL), 1)
+	LIBRARIES += nccl
+	COMMON_FLAGS += -DUSE_NCCL
+endif
+
+# configure IO libraries
 # OS X:
 # clang++ instead of g++
 # libstdc++ for NVCC compatibility on OS X >= 10.9 with CUDA < 7.0
@@ -298,7 +307,7 @@ else
 	ifeq ($(LINUX), 1)
 		ifeq ($(BLAS), atlas)
 			# Linux simply has cblas and atlas
-			LIBRARIES += cblas atlas
+			LIBRARIES += satlas tatlas
 		endif
 	else ifeq ($(OSX), 1)
 		# OS X packages atlas as the vecLib framework
@@ -359,14 +368,13 @@ proto: $(PROTO_GEN_JAVA)
 
 $(PROTO_GEN_JAVA): $(PROTO_SRC) | $(PROTO_BUILD_DIR)
 	@ echo PROTOC $<
-	$(Q)protoc --proto_path=$(PROTO_SRC_DIR) --java_out=$(PROTO_BUILD_DIR) $<
+	$(Q)$(PROTOC) --proto_path=$(PROTO_SRC_DIR) --java_out=$(PROTO_BUILD_DIR) $<
 
 
 $(JNI_GEN_HEADER_DIR)/$(JNI_GEN_HEADER_PREFIX)%.h : $(JNI_JCAFFE_DIR)/%.class \
 	| $(JNI_GEN_HEADER_DIR)
 	javah -d $(JNI_GEN_HEADER_DIR) -force -cp $(JNI_CLASS_DIR) \
 	$(JNI_CLASS_NAME_PREFIX).$*
-
 lib: $(JNI_GEN_HEADER_FILES) $(STATIC_NAME) $(DYNAMIC_NAME)
 
 tools: $(TOOL_BINS) $(TOOL_BIN_LINKS)

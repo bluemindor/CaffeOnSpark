@@ -25,6 +25,7 @@ import scala.reflect.ClassTag
 object CaffeOnSpark {
   private val log: Logger = LoggerFactory.getLogger(this.getClass)
   def main(args: Array[String]) {
+    log.debug("started")
     val sc_conf = new SparkConf()
     sc_conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.scheduler.minRegisteredResourcesRatio", "1.0")
@@ -32,7 +33,6 @@ object CaffeOnSpark {
     val sc: SparkContext = new SparkContext(sc_conf)
     //Caffe-on-Spark configuration
     var conf = new Config(sc, args)
-
     //training if specified
     val caffeSpark = new CaffeOnSpark(sc)
     if (conf.isTraining ){
